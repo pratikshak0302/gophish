@@ -23,7 +23,16 @@ FROM debian:stable-slim
 # Install needed packages
 RUN apt-get update && \
     apt-get install --no-install-recommends -y \
-        jq libcap2-bin ca-certificates gcc golang make && \
+        golang \
+        gcc \
+        g++ \
+        libc6-dev \
+        libsqlite3-dev \
+        pkg-config \
+        make \
+        jq \
+        libcap2-bin \
+        ca-certificates && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
