@@ -50,6 +50,6 @@ COPY --from=build-js /build/static/css/dist/ ./static/css/dist/
 # Update config to use external IPs
 RUN sed -i 's/127.0.0.1/0.0.0.0/g' config.json
 
-EXPOSE 3333 8080
+EXPOSE 8080 8081
 
 CMD ["./gophish"]
