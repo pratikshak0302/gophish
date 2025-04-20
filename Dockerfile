@@ -1,45 +1,46 @@
-# Minify client side assets (JavaScript)
+# Stage 1: Build frontend
 FROM node:latest AS build-js
 
 RUN npm install gulp gulp-cli -g
 
 WORKDIR /build
 COPY . .
-RUN npm install --only=dev
+RUN npm install --include=dev
 RUN gulp
 
 
-# Build Golang binary
+# Stage 2: Build backend
 FROM golang:1.15.2 AS build-golang
 
-WORKDIR /go/src/github.com/gophish/gophish
+WORKDIR /app
 COPY . .
-RUN go get -v && go build -v
+RUN go get -v && go build -o gophish .
 
 
-# Runtime container
+# Final stage: Runtime container
 FROM debian:stable-slim
 
-RUN useradd -m -d /opt/gophish -s /bin/bash app
-
+# Install needed packages
 RUN apt-get update && \
-	apt-get install --no-install-recommends -y jq libcap2-bin ca-certificates && \
-	apt-get clean && \
-	rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+    apt-get install --no-install-recommends -y \
+        jq libcap2-bin ca-certificates gcc golang make && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 WORKDIR /opt/gophish
-COPY --from=build-golang /go/src/github.com/gophish/gophish/ ./
+
+# Copy full source code and build Gophish in-place (solves exec issue)
+COPY . .
+RUN go build -o gophish .
+RUN chmod +x gophish
+
+# Copy UI assets
 COPY --from=build-js /build/static/js/dist/ ./static/js/dist/
 COPY --from=build-js /build/static/css/dist/ ./static/css/dist/
-COPY --from=build-golang /go/src/github.com/gophish/gophish/config.json ./
-RUN chown app. config.json
 
-RUN setcap 'cap_net_bind_service=+ep' /opt/gophish/gophish
-
-USER app
+# Update config to use external IPs
 RUN sed -i 's/127.0.0.1/0.0.0.0/g' config.json
-RUN touch config.json.tmp
 
-EXPOSE 3333 8080 8443 80
+EXPOSE 3333 8080
 
-CMD ["./docker/run.sh"]
+CMD ["./gophish"]
