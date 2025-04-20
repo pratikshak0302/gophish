@@ -5,7 +5,8 @@ RUN npm install gulp gulp-cli -g
 
 WORKDIR /build
 COPY . .
-RUN npm install --only=dev
+#RUN npm install --only=dev
+RUN npm install --include=dev
 RUN gulp
 
 
