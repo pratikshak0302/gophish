@@ -36,6 +36,8 @@ RUN apt-get update && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
+RUN useradd -m -d /opt/gophish -s /bin/bash app
+
 WORKDIR /opt/gophish
 
 # Copy full source code and build Gophish in-place (solves exec issue)
