@@ -46,7 +46,7 @@ RUN chmod +x gophish
 # Copy UI assets
 COPY --from=build-js /build/static/js/dist/ ./static/js/dist/
 COPY --from=build-js /build/static/css/dist/ ./static/css/dist/
-COPY --from=build-golang /go/src/github.com/gophish/gophish/config.json ./
+COPY config.json ./
 RUN chown app:app config.json
 
 RUN setcap 'cap_net_bind_service=+ep' /opt/gophish/gophish
